@@ -307,7 +307,8 @@ io.on("connection", (socket) => {
       });
 
       io.to(chatId).emit("message received", msg);
-      if (id !== msg.chatId.customer._id) {
+      const user = await Appusers.findOne({ _id: id });
+      if (!user) {
         const newNotification = new Notification({
           admin_id: id,
           app_user_id: msg.chatId.customer._id,

@@ -17,7 +17,7 @@ router.get("/app-user", appauth, appuserCtrl.app_user_by_id);
 router.put("/app-user", appauth, appuserCtrl.update_user_by_id);
 router.patch("/app-user", appauth, appuserCtrl.update_user_password_by_id);
 router.delete(
-  "/app-user-delete/:id",
+  "/app-user-delete",
   appauth,
   appuserCtrl.update_user_status_by_id
 );

@@ -19,12 +19,12 @@ const articleSchema = new mongoose.Schema(
       type: String,
       enum: ["Daily", "Weekly", "Monthly"],
       trim: true,
-      required: [true, "Please enter month"],
+      // required: [true, "Please enter month"],
     },
     title: { type: String, required: [true, "Please enter title"], trim: true },
     calendar: {
       type: String,
-      required: [true, "Please enter today_date"],
+      // required: [true, "Please enter today_date"],
       trim: true,
       validate: {
         validator: function (value) {
@@ -37,7 +37,7 @@ const articleSchema = new mongoose.Schema(
     },
     time: {
       type: String,
-      required: [true, "Please enter today_time"],
+      // required: [true, "Please enter today_time"],
       trim: true,
       validate: {
         validator: function (value) {
@@ -48,26 +48,42 @@ const articleSchema = new mongoose.Schema(
         message: 'Invalid time format. Please use "hh:mmAM" or "hh:mmPM".',
       },
     },
-    media_url: { type: String, required: [true, "Please enter media url"], trim: true },
+    media_url: {
+      type: String,
+      // required: [true, "Please enter media url"],
+      trim: true,
+    },
     health_survey_score: {
       min: {
         type: Number,
-        required: [true, "Please enter minimum health_survey_score"],
+        // required: [true, "Please enter minimum health_survey_score"],
         trim: true,
       },
       max: {
         type: Number,
-        required: [true, "Please enter maximum health_survey_score"],
+        // required: [true, "Please enter maximum health_survey_score"],
         trim: true,
       },
     },
     q_les_qsf_score: {
-      min: { type: Number, required: [true, "Please minimum enter q_les_qsf_score"], trim: true },
-      max: { type: Number, required: [true, "Please maximum enter q_les_qsf_score"], trim: true },
+      min: {
+        type: Number,
+        // required: [true, "Please minimum enter q_les_qsf_score"], trim: true
+      },
+      max: {
+        type: Number,
+        // required: [true, "Please maximum enter q_les_qsf_score"], trim: true
+      },
     },
     qid_sr_score: {
-      min: { type: Number, required: [true, "Please minimum enter qid_sr_score"], trim: true },
-      max: { type: Number, required: [true, "Please maximum enter qid_sr_score"], trim: true },
+      min: {
+        type: Number,
+        //  required: [true, "Please minimum enter qid_sr_score"], trim: true
+      },
+      max: {
+        type: Number,
+        // required: [true, "Please maximum enter qid_sr_score"], trim: true
+      },
     },
     cancer_type: {
       type: String,
@@ -92,24 +108,36 @@ const articleSchema = new mongoose.Schema(
         "Uterine cancer",
         "Vaginal and vulvar cancers",
       ],
-      required: [true, "Please enter cancer type"],
+      // required: [true, "Please enter cancer type"],
+      default: "None",
+
       trim: true,
     },
     tumor_stage: {
       type: String,
       enum: ["None", "Stage I", "Stage II", "Stage III", "Stage IV"],
-      required: [true, "Please enter tumor type"],
+      // required: [true, "Please enter tumor type"],
       trim: true,
+      default: "None",
     },
     current_cancer_treatment: {
       type: [String],
-      enum: ["Radiotherapy", "Chemotherapy", "Hormonal treatment", "No Treatments", "other"],
-      required: [true, "Please enter tumor type"],
+      enum: [
+        "None",
+        "Radiotherapy",
+        "Chemotherapy",
+        "Hormonal treatment",
+        "No Treatments",
+        "other",
+      ],
+      // required: [true, "Please enter tumor type"],
       trim: true,
+      default: "None",
     },
     other_conditions: {
       type: String,
       enum: [
+        "None",
         "Hypertension",
         "Diabetes",
         "Heart conditions",
@@ -132,19 +160,22 @@ const articleSchema = new mongoose.Schema(
         "Solid organ or blood stem cell transplantation",
         "Use of corticosteroids or other immunosuppressive medications",
       ],
-      required: [true, "Please enter tumor type"],
+      // required: [true, "Please enter tumor type"],
+      default: "None",
       trim: true,
     },
     severity_of_symptoms: {
       type: String,
       enum: [
+        "None",
         "Depression",
         "Anxiety",
         "Distress",
         "Impact on quality of life",
         "Psychosocial impact",
       ],
-      required: [true, "Please enter tumor type"],
+      // required: [true, "Please enter tumor type"],
+      default: "None",
       trim: true,
     },
     description: { type: String, default: "", trim: true },

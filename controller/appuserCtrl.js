@@ -34,6 +34,7 @@ const {
 
 const sgMail = require("@sendgrid/mail");
 const activeUsers = require("../models/activeUsers");
+const Chat = require("../models/chatSupportModel");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // DEFINES
@@ -335,7 +336,7 @@ const appuserCtrl = {
       if (!validatePassword(password))
         return res.status(400).json({
           error:
-            "Password must be atleast 6 Characters long, contains captial Letter and special character.",
+            "Password must be atleast 6 Characters long, contains capital Letter and special character.",
         });
 
       // if (!validateDate(dob))
@@ -614,7 +615,7 @@ const appuserCtrl = {
       if (!validatePassword(password))
         return res.status(400).json({
           error:
-            "Password must be atleast 6 Characters long, contains captial Letter and special character.",
+            "Password must be atleast 6 Characters long, contains capital Letter and special character.",
         });
 
       const user = await Appusers.findOne({ email: email.toLowerCase() });
@@ -881,7 +882,7 @@ const appuserCtrl = {
       if (!validatePassword(password))
         return res.status(400).json({
           error:
-            "Password must be atleast 6 Characters long, contains captial Letter and special character.",
+            "Password must be atleast 6 Characters long, contains capital Letter and special character.",
         });
 
       if (await existingLastPasswords(user.last_passwords, password))
@@ -941,6 +942,7 @@ const appuserCtrl = {
         nickname: 1,
         email: 1,
         status: 1,
+        dob: 1,
         createdAt: 1,
         updatedAt: 1,
         avatar: 1,
@@ -1159,23 +1161,25 @@ const appuserCtrl = {
   },
   update_user_status_by_id: async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id } = req.user;
 
       if (!id)
         return res.status(400).json({ error: "All fields are required" });
 
       const user = await Appusers.findOne({ _id: id });
-      let update_log = user.update_log || [];
-      update_log.push({
-        created_at: new Date().toISOString(),
-        msg: "User Account Deactivated!",
-      });
+
+      if (!user || user.length <= 0)
+        return res.status(400).json({ error: "User not found!" });
+      // let update_log = user.update_log || [];
+      // update_log.push({
+      //   created_at: new Date().toISOString(),
+      //   msg: "User Account Deactivated!",
+      // });
       await activeUsers.findOneAndRemove({ appUserId: id });
       await Chat.findOneAndRemove({ customer: id });
 
       await Appusers.findOneAndRemove(
         { _id: id }
-
         // {
         //   $set: {
         //     status: 0,

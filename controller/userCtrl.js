@@ -14,7 +14,10 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const fs = require("fs-extra");
 const path = require("path");
-const { uploadImage, sendPushNotification } = require("../helper/UploadImageFirebase");
+const {
+  uploadImage,
+  sendPushNotification,
+} = require("../helper/UploadImageFirebase");
 const activeUsers = require("../models/activeUsers");
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -49,7 +52,8 @@ const userCtrl = {
       if (!first_name || !last_name || !email || !password)
         return res.status(400).json({ error: "All feilds are required." });
 
-      if (!validateEmail(email)) return res.status(400).json({ error: "Invalid email." });
+      if (!validateEmail(email))
+        return res.status(400).json({ error: "Invalid email." });
 
       const check = await Users.findOne({ email });
       if (check) return res.status(400).json({ error: "Email already exist." });
@@ -118,14 +122,18 @@ const userCtrl = {
     try {
       const { email } = req.body;
 
-      if (!email) return res.status(400).json({ error: "All feilds are required." });
+      if (!email)
+        return res.status(400).json({ error: "All feilds are required." });
 
-      if (!validateEmail(email)) return res.status(400).json({ error: "Invalid email." });
+      if (!validateEmail(email))
+        return res.status(400).json({ error: "Invalid email." });
 
       const check = await Users.findOne({ email });
-      if (!check) return res.status(400).json({ error: "Email does not exist." });
+      if (!check)
+        return res.status(400).json({ error: "Email does not exist." });
 
-      if (check?.otp_verified) return res.status(400).json({ error: "Email already verified." });
+      if (check?.otp_verified)
+        return res.status(400).json({ error: "Email already verified." });
 
       const otp = generateOTP();
       const currentdate = new Date();
@@ -165,9 +173,13 @@ const userCtrl = {
     try {
       const { activation_token } = req.body;
 
-      if (!activation_token) return res.status(400).json({ error: "All feilds are required." });
+      if (!activation_token)
+        return res.status(400).json({ error: "All feilds are required." });
 
-      const user = jwt.verify(activation_token, process.env.ACTIVATION_TOKEN_SECRET);
+      const user = jwt.verify(
+        activation_token,
+        process.env.ACTIVATION_TOKEN_SECRET
+      );
 
       const { first_name, last_name, email, password } = user;
 
@@ -193,9 +205,11 @@ const userCtrl = {
     try {
       const { email, password } = req.body;
 
-      if (!email || !password) return res.status(400).json({ error: "All feilds are required" });
+      if (!email || !password)
+        return res.status(400).json({ error: "All feilds are required" });
 
-      if (!validateEmail(email)) return res.status(400).json({ error: "Invalid email." });
+      if (!validateEmail(email))
+        return res.status(400).json({ error: "Invalid email." });
 
       if (!validatePassword(password))
         return res.status(400).json({
@@ -204,7 +218,8 @@ const userCtrl = {
         });
 
       const user = await Users.findOne({ email: email.toLowerCase() });
-      if (!user) return res.status(400).json({ error: "This email does not exist." });
+      if (!user)
+        return res.status(400).json({ error: "This email does not exist." });
 
       if (!user.status)
         return res.status(401).json({
@@ -212,13 +227,16 @@ const userCtrl = {
         });
 
       const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) return res.status(400).json({ error: "Incorrect Password." });
+      if (!isMatch)
+        return res.status(400).json({ error: "Incorrect Password." });
 
       // if (!user.otp_verified)
       //     return res.status(400).json({ error: "Unverified Account." })
 
       if (!user.status)
-        return res.status(400).json({ error: "Account Is Blocked. Please contact administrator" });
+        return res
+          .status(400)
+          .json({ error: "Account Is Blocked. Please contact administrator" });
 
       // REFRESH TOKEN ISSUE
       // const refresh_token = createRefreshToken({ id: user.id })
@@ -258,12 +276,15 @@ const userCtrl = {
     try {
       const { email } = req.body;
 
-      if (!email) return res.status(400).json({ error: "All feilds are required" });
+      if (!email)
+        return res.status(400).json({ error: "All feilds are required" });
 
-      if (!validateEmail(email)) return res.status(400).json({ error: "Invalid email." });
+      if (!validateEmail(email))
+        return res.status(400).json({ error: "Invalid email." });
 
       const user = await Users.findOne({ email: email.toLowerCase() });
-      if (!user) return res.status(400).json({ error: "This email does not exist." });
+      if (!user)
+        return res.status(400).json({ error: "This email does not exist." });
 
       const otp = generateOTP();
       const currentdate = new Date();
@@ -274,7 +295,10 @@ const userCtrl = {
         otp,
       };
 
-      await Users.findOneAndUpdate({ _id: user._id }, { $push: { forgot_password: otp_expires } });
+      await Users.findOneAndUpdate(
+        { _id: user._id },
+        { $push: { forgot_password: otp_expires } }
+      );
 
       //SEND MAIL
       const msg = {
@@ -304,25 +328,33 @@ const userCtrl = {
   verifyforgotOTP: async (req, res) => {
     try {
       const { otp, email } = req.body;
-      if (!email || !otp) return res.status(400).json({ error: "All feilds are required" });
+      if (!email || !otp)
+        return res.status(400).json({ error: "All feilds are required" });
 
-      if (!validateEmail(email)) return res.status(400).json({ error: "Invalid email." });
+      if (!validateEmail(email))
+        return res.status(400).json({ error: "Invalid email." });
 
       const user = await Users.findOne({ email: email.toLowerCase() });
-      if (!user) return res.status(400).json({ error: "This email does not exist." });
+      if (!user)
+        return res.status(400).json({ error: "This email does not exist." });
 
-      if (!validateOTP(otp)) return res.status(400).json({ error: "Invalid otp." });
+      if (!validateOTP(otp))
+        return res.status(400).json({ error: "Invalid otp." });
 
       if (!user.forgot_password[0].otp)
-        return res.status(400).json({ error: "Please generate Reset OTP First." });
+        return res
+          .status(400)
+          .json({ error: "Please generate Reset OTP First." });
 
       const check = user.forgot_password.at(-1);
-      if (check.otp != otp) return res.status(400).json({ error: "Invalid Otp." });
+      if (check.otp != otp)
+        return res.status(400).json({ error: "Invalid Otp." });
 
       const currentdate = new Date();
       const otp_expires = new Date(check?.expires);
 
-      if (currentdate > otp_expires) return res.status(410).json({ error: "OTP expired." });
+      if (currentdate > otp_expires)
+        return res.status(410).json({ error: "OTP expired." });
 
       res.status(200).json({ success: 1, msg: "Verified." });
     } catch (err) {
@@ -336,12 +368,15 @@ const userCtrl = {
       if (!email || !otp || !password)
         return res.status(400).json({ error: "All feilds are required" });
 
-      if (!validateEmail(email)) return res.status(400).json({ error: "Invalid email." });
+      if (!validateEmail(email))
+        return res.status(400).json({ error: "Invalid email." });
 
       const user = await Users.findOne({ email: email.toLowerCase() });
-      if (!user) return res.status(400).json({ error: "This email does not exist." });
+      if (!user)
+        return res.status(400).json({ error: "This email does not exist." });
 
-      if (!validateOTP(otp)) return res.status(400).json({ error: "Invalid otp." });
+      if (!validateOTP(otp))
+        return res.status(400).json({ error: "Invalid otp." });
 
       if (!validatePassword(password))
         return res.status(400).json({
@@ -351,20 +386,25 @@ const userCtrl = {
 
       if (await existingLastPasswords(user.last_passwords, password))
         return res.status(400).json({
-          error: "You have previously used this password, try with different password.",
+          error:
+            "You have previously used this password, try with different password.",
         });
 
       if (!user.forgot_password[0].otp)
-        return res.status(400).json({ error: "Please generate Reset OTP First." });
+        return res
+          .status(400)
+          .json({ error: "Please generate Reset OTP First." });
 
       const check = user.forgot_password.at(-1);
 
-      if (check.otp != otp) return res.status(400).json({ error: "Invalid Otp." });
+      if (check.otp != otp)
+        return res.status(400).json({ error: "Invalid Otp." });
 
       const currentdate = new Date();
       const otp_expires = new Date(check?.expires);
 
-      if (currentdate > otp_expires) return res.status(410).json({ error: "OTP expired." });
+      if (currentdate > otp_expires)
+        return res.status(410).json({ error: "OTP expired." });
 
       const passwordHash = await bcrypt.hash(password, 12);
 
@@ -411,7 +451,8 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       const query = { _id: id };
       const response_params = {
@@ -439,13 +480,16 @@ const userCtrl = {
       const file = req.files.file;
       console.log("files", file);
 
-      if (!file) return res.status(400).json({ error: "File is not uploaded!" });
+      if (!file)
+        return res.status(400).json({ error: "File is not uploaded!" });
 
       const { name, tempFilePath } = file;
 
       const uploadDirectory = "uploads/admin/avatar/";
       const extension = path.extname(name);
-      const randomFileName = `${Date.now()}${Math.floor(Math.random() * 10000)}${extension}`;
+      const randomFileName = `${Date.now()}${Math.floor(
+        Math.random() * 10000
+      )}${extension}`;
       const destinationPath = `${uploadDirectory}${randomFileName}`;
 
       await fs.move(tempFilePath, destinationPath);
@@ -496,7 +540,8 @@ const userCtrl = {
 
       if (user.email !== email) {
         const check = await Users.findOne({ email: email.toLowerCase() });
-        if (check) return res.status(400).json({ error: "Email already exist." });
+        if (check)
+          return res.status(400).json({ error: "Email already exist." });
       }
 
       let update = { first_name, last_name, email: email.toLowerCase() };
@@ -523,12 +568,14 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       let query = { _id: id };
       const users = await Users.find(query);
 
-      if (!users || users.length <= 0) return res.status(400).json({ error: "User not found!" });
+      if (!users || users.length <= 0)
+        return res.status(400).json({ error: "User not found!" });
 
       // if (!users[0].status) return res.status(400).json({ error: "Already Deactivated!" });
 
@@ -540,7 +587,9 @@ const userCtrl = {
         // }
       );
 
-      res.status(200).json({ success: 1, data: "Account Successfully Deactivate!" });
+      res
+        .status(200)
+        .json({ success: 1, data: "Account Successfully Deactivate!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
@@ -588,7 +637,8 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       const query = { _id: id };
       const response_params = {
@@ -622,10 +672,14 @@ const userCtrl = {
 
       const users = await Appusers.find(query, response_params);
       const surveys = await FilledSurveys.find({ app_user_id: id });
-      const questionareIds = surveys.map((assignment) => assignment.questionare_id);
+      const questionareIds = surveys.map(
+        (assignment) => assignment.questionare_id
+      );
       console.log("survey", surveys, "questionareIds", questionareIds);
 
-      const questionares = await Questionares.find({ _id: { $in: questionareIds } });
+      const questionares = await Questionares.find({
+        _id: { $in: questionareIds },
+      });
       // const { title } = questionares;
       console.log("questionare", questionares);
 
@@ -643,17 +697,18 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       let query = { _id: id };
       const users = await Appusers.find(query);
-
-      if (!users || users.length <= 0) return res.status(400).json({ error: "User not found!" });
+      console.log("users", users);
+      if (!users || users.length <= 0)
+        return res.status(400).json({ error: "User not found!" });
 
       // if (!users[0].status) return res.status(400).json({ error: "Already Deactivated!" });
       await activeUsers.findOneAndRemove({ appUserId: id });
-            await Chat.findOneAndRemove({ customer: id });
-
+      await Chat.findOneAndRemove({ customer: id });
 
       await Appusers.findOneAndRemove(
         { _id: id }
@@ -662,8 +717,9 @@ const userCtrl = {
         // }
       );
 
-
-      res.status(200).json({ success: 1, data: "Account Successfully Deactivate!" });
+      res
+        .status(200)
+        .json({ success: 1, data: "Account Successfully Deactivate!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
@@ -673,14 +729,24 @@ const userCtrl = {
       const { content_type, title, month, description, questions } = req.body;
       const { id } = req.user;
 
-      if (!content_type || !title || !month || !questions || questions.length <= 0) {
+      if (
+        !content_type ||
+        !title ||
+        !month ||
+        !questions ||
+        questions.length <= 0
+      ) {
         return res.status(400).json({ error: "All fields are required" });
       }
 
       // VALIDATION
       const questions_types = ["Multiple Choice", "Checkboxes", "Dropdown"];
-      const validQuestionTypes = questions.every((row) => questions_types.includes(row.type));
-      const validQuestionRequired = questions.every((row) => typeof row.is_required === "boolean");
+      const validQuestionTypes = questions.every((row) =>
+        questions_types.includes(row.type)
+      );
+      const validQuestionRequired = questions.every(
+        (row) => typeof row.is_required === "boolean"
+      );
       const validQuestion = questions.every(
         (row) => typeof row.question === "string" && row.question != ""
       );
@@ -697,11 +763,15 @@ const userCtrl = {
       }
 
       if (!validQuestionRequired) {
-        return res.status(400).json({ msg: "Boolean is expected in is_required" });
+        return res
+          .status(400)
+          .json({ msg: "Boolean is expected in is_required" });
       }
 
       if (!validOption) {
-        return res.status(400).json({ msg: "Every question atleast has one option." });
+        return res
+          .status(400)
+          .json({ msg: "Every question atleast has one option." });
       }
 
       for (const question of questions) {
@@ -745,7 +815,7 @@ const userCtrl = {
         is_all_users: true,
         sender: id,
         content: "New Questionnaire Added kindly fill this",
-        route: `questionnaire/${Questionnaire._id}`,
+        route: `/appuser/health-surveys?content_type=English`,
       });
 
       const notification = await newNotification.save();
@@ -753,7 +823,9 @@ const userCtrl = {
       // sendPushNotification(FCMTokens,notification);
 
       // console.log("notification", notification);
-      res.status(200).json({ success: 1, data: "Questionnaire Created Successfully!" });
+      res
+        .status(200)
+        .json({ success: 1, data: "Questionnaire Created Successfully!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
@@ -773,7 +845,8 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       const query = { _id: id };
 
@@ -788,7 +861,8 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       const params = {
         _id: 1,
@@ -799,7 +873,8 @@ const userCtrl = {
       };
 
       const record = await Questionares.find({ _id: id });
-      if (record.length <= 0) return res.status(400).json({ error: "Questionare does not exist!" });
+      if (record.length <= 0)
+        return res.status(400).json({ error: "Questionare does not exist!" });
 
       const appusers = await Appusers.find({}, params);
       const filledSurveys = await FilledSurveys.find({ questionare_id: id });
@@ -828,19 +903,31 @@ const userCtrl = {
   },
   update_questionare_by_id: async (req, res) => {
     try {
-      const { content_type, title, month, description, questions, status } = req.body;
+      const { content_type, title, month, description, questions, status } =
+        req.body;
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
-      if (!content_type || !title || !month || !questions || questions.length <= 0) {
+      if (
+        !content_type ||
+        !title ||
+        !month ||
+        !questions ||
+        questions.length <= 0
+      ) {
         return res.status(400).json({ error: "All fields are required" });
       }
 
       // VALIDATION
       const questions_types = ["Multiple Choice", "Checkboxes", "Dropdown"];
-      const validQuestionTypes = questions.every((row) => questions_types.includes(row.type));
-      const validQuestionRequired = questions.every((row) => typeof row.is_required === "boolean");
+      const validQuestionTypes = questions.every((row) =>
+        questions_types.includes(row.type)
+      );
+      const validQuestionRequired = questions.every(
+        (row) => typeof row.is_required === "boolean"
+      );
       const validQuestion = questions.every(
         (row) => typeof row.question === "string" && row.question != ""
       );
@@ -857,11 +944,15 @@ const userCtrl = {
       }
 
       if (!validQuestionRequired) {
-        return res.status(400).json({ msg: "Boolean is expected in is_required" });
+        return res
+          .status(400)
+          .json({ msg: "Boolean is expected in is_required" });
       }
 
       if (!validOption) {
-        return res.status(400).json({ msg: "Every question atleast has one option." });
+        return res
+          .status(400)
+          .json({ msg: "Every question atleast has one option." });
       }
 
       for (const question of questions) {
@@ -909,41 +1000,34 @@ const userCtrl = {
       const {
         content_type,
         article_type,
-        month,
         title,
         calendar,
         time,
         media_url,
-        health_survey_score,
-        q_les_qsf_score,
-        qid_sr_score,
-        cancer_type,
-        tumor_stage,
-        current_cancer_treatment,
-        other_conditions,
-        severity_of_symptoms,
         description,
         video_url,
       } = req.body;
-      const { id } = req.user;
 
+      const { id } = req.user;
+      console.log("id", id ,req.body);
       if (
         !content_type ||
         !article_type ||
-        !month ||
+        // !month ||
         !title ||
-        !calendar ||
+        // !calendar ||
         !time ||
-        !media_url ||
-        health_survey_score.length <= 0 ||
-        q_les_qsf_score.length <= 0 ||
-        qid_sr_score.length <= 0 ||
-        !cancer_type ||
-        !tumor_stage ||
-        !current_cancer_treatment ||
-        !other_conditions ||
-        !severity_of_symptoms ||
-        !description
+        !media_url
+        // ||
+        // health_survey_score.length <= 0 ||
+        // q_les_qsf_score.length <= 0 ||
+        // qid_sr_score.length <= 0 ||
+        // !cancer_type ||
+        // !tumor_stage ||
+        // !current_cancer_treatment ||
+        // !other_conditions ||
+        // !severity_of_symptoms ||
+        // !description
       ) {
         return res.status(400).json({ error: "All fields are required" });
       }
@@ -959,41 +1043,38 @@ const userCtrl = {
       // if (video_url && !isValidURL(video_url))
       //   return res.status(400).json({ error: "Format Error, Incorrect Video URL." });
 
-      if (health_survey_score[1] <= health_survey_score[0])
-        return res.status(400).json({
-          error: "Format Error, Recheck Health Survey Score Min Max.",
-        });
+      // if (health_survey_score[1] <= health_survey_score[0])
+      //   return res.status(400).json({
+      //     error: "Format Error, Recheck Health Survey Score Min Max.",
+      //   });
 
-      if (q_les_qsf_score[1] <= q_les_qsf_score[0])
-        return res.status(400).json({ error: "Format Error, Recheck Q LES QSF Score Min Max." });
+      // if (q_les_qsf_score[1] <= q_les_qsf_score[0])
+      //   return res
+      //     .status(400)
+      //     .json({ error: "Format Error, Recheck Q LES QSF Score Min Max." });
 
-      if (qid_sr_score[1] <= qid_sr_score[0])
-        return res.status(400).json({ error: "Format Error, Recheck QID SR Score Min Max." });
+      // if (qid_sr_score[1] <= qid_sr_score[0])
+      //   return res
+      //     .status(400)
+      //     .json({ error: "Format Error, Recheck QID SR Score Min Max." });
 
       const newArticles = new Articles({
         admin_id: id,
         content_type,
         article_type,
-        month,
         title,
         calendar,
         time,
         media_url,
-        health_survey_score,
-        q_les_qsf_score,
-        qid_sr_score,
-        cancer_type,
-        tumor_stage,
-        current_cancer_treatment,
-        other_conditions,
-        severity_of_symptoms,
         description,
         video_url,
       });
 
       await newArticles.save();
 
-      res.status(200).json({ success: 1, data: "Article Created Successfully!" });
+      res
+        .status(200)
+        .json({ success: 1, data: "Article Created Successfully!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
@@ -1002,7 +1083,8 @@ const userCtrl = {
     try {
       const file = req.files.file;
       console.log("file", file);
-      if (!file) return res.status(400).json({ error: "File is not uploaded!" });
+      if (!file)
+        return res.status(400).json({ error: "File is not uploaded!" });
 
       const { name, tempFilePath, size } = file;
 
@@ -1021,10 +1103,14 @@ const userCtrl = {
         !allowedImageExtensions.includes(extension.toLowerCase()) &&
         !allowedVideoExtensions.includes(extension.toLowerCase())
       ) {
-        return res.status(400).json({ error: "Only image and video files are allowed!" });
+        return res
+          .status(400)
+          .json({ error: "Only image and video files are allowed!" });
       }
 
-      const randomFileName = `${Date.now()}${Math.floor(Math.random() * 10000)}${extension}`;
+      const randomFileName = `${Date.now()}${Math.floor(
+        Math.random() * 10000
+      )}${extension}`;
       const destinationPath = `${uploadDirectory}${randomFileName}`;
 
       await fs.move(tempFilePath, destinationPath);
@@ -1056,7 +1142,8 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       const query = { _id: id };
 
@@ -1090,7 +1177,8 @@ const userCtrl = {
       } = req.body;
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       if (
         !content_type ||
@@ -1123,10 +1211,14 @@ const userCtrl = {
         });
 
       if (q_les_qsf_score[1] <= q_les_qsf_score[0])
-        return res.status(400).json({ error: "Format Error, Recheck Q LES QSF Score Min Max." });
+        return res
+          .status(400)
+          .json({ error: "Format Error, Recheck Q LES QSF Score Min Max." });
 
       if (qid_sr_score[1] <= qid_sr_score[0])
-        return res.status(400).json({ error: "Format Error, Recheck QID SR Score Min Max." });
+        return res
+          .status(400)
+          .json({ error: "Format Error, Recheck QID SR Score Min Max." });
 
       const updatedArticle = await Articles.findByIdAndUpdate(
         id,
@@ -1191,18 +1283,19 @@ const userCtrl = {
         !id ||
         !article_id ||
         !title ||
-        !calendar ||
+        // !calendar ||
         !time ||
         !media_url ||
         health_survey_score.length <= 0 ||
         q_les_qsf_score.length <= 0 ||
-        qid_sr_score.length <= 0 ||
-        !cancer_type ||
-        !tumor_stage ||
-        !current_cancer_treatment ||
-        !other_conditions ||
-        !severity_of_symptoms ||
-        !description
+        qid_sr_score.length <= 0
+        // ||
+        // !cancer_type ||
+        // !tumor_stage ||
+        // !current_cancer_treatment ||
+        // !other_conditions ||
+        // !severity_of_symptoms ||
+        // !description
       )
         return res.status(400).json({ error: "All fields are required" });
 
@@ -1220,10 +1313,14 @@ const userCtrl = {
         });
 
       if (q_les_qsf_score[1] <= q_les_qsf_score[0])
-        return res.status(400).json({ error: "Format Error, Recheck Q LES QSF Score Min Max." });
+        return res
+          .status(400)
+          .json({ error: "Format Error, Recheck Q LES QSF Score Min Max." });
 
       if (qid_sr_score[1] <= qid_sr_score[0])
-        return res.status(400).json({ error: "Format Error, Recheck QID SR Score Min Max." });
+        return res
+          .status(400)
+          .json({ error: "Format Error, Recheck QID SR Score Min Max." });
 
       const newDailyTask = new DailyTasks({
         admin_id: id,
@@ -1277,7 +1374,9 @@ const userCtrl = {
         await newDailytaskassigns.save();
       }
 
-      res.status(200).json({ success: 1, data: "Daily Task Created Successfully!" });
+      res
+        .status(200)
+        .json({ success: 1, data: "Daily Task Created Successfully!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
@@ -1285,7 +1384,8 @@ const userCtrl = {
   add_dailytask_media: async (req, res) => {
     try {
       const file = req.files.file;
-      if (!file) return res.status(400).json({ error: "File is not uploaded!" });
+      if (!file)
+        return res.status(400).json({ error: "File is not uploaded!" });
 
       const { name, tempFilePath, size } = file;
 
@@ -1305,10 +1405,14 @@ const userCtrl = {
         !allowedImageExtensions.includes(extension.toLowerCase()) &&
         !allowedVideoExtensions.includes(extension.toLowerCase())
       ) {
-        return res.status(400).json({ error: "Only image and video files are allowed!" });
+        return res
+          .status(400)
+          .json({ error: "Only image and video files are allowed!" });
       }
 
-      const randomFileName = `${Date.now()}${Math.floor(Math.random() * 10000)}${extension}`;
+      const randomFileName = `${Date.now()}${Math.floor(
+        Math.random() * 10000
+      )}${extension}`;
       const destinationPath = `${uploadDirectory}${randomFileName}`;
 
       await fs.move(tempFilePath, destinationPath);
@@ -1340,7 +1444,8 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       const query = { _id: id };
 
@@ -1374,7 +1479,8 @@ const userCtrl = {
       } = req.body;
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       if (
         !content_type ||
@@ -1409,10 +1515,14 @@ const userCtrl = {
         });
 
       if (q_les_qsf_score[1] <= q_les_qsf_score[0])
-        return res.status(400).json({ error: "Format Error, Recheck Q LES QSF Score Min Max." });
+        return res
+          .status(400)
+          .json({ error: "Format Error, Recheck Q LES QSF Score Min Max." });
 
       if (qid_sr_score[1] <= qid_sr_score[0])
-        return res.status(400).json({ error: "Format Error, Recheck QID SR Score Min Max." });
+        return res
+          .status(400)
+          .json({ error: "Format Error, Recheck QID SR Score Min Max." });
 
       const updatedDailyTask = await DailyTasks.findByIdAndUpdate(
         id,
@@ -1452,7 +1562,8 @@ const userCtrl = {
       const { text } = req.body;
       const { id } = req.user;
 
-      if (!text || !id) return res.status(400).json({ error: "All fields are required" });
+      if (!text || !id)
+        return res.status(400).json({ error: "All fields are required" });
 
       // Delete all existing records
       await TermsAndConditions.deleteMany({});
@@ -1477,7 +1588,8 @@ const userCtrl = {
       const { text } = req.body;
       const { id } = req.user;
 
-      if (!text || !id) return res.status(400).json({ error: "All fields are required" });
+      if (!text || !id)
+        return res.status(400).json({ error: "All fields are required" });
 
       // Delete all existing records
       await privacypolicySchema.deleteMany({});
@@ -1489,7 +1601,9 @@ const userCtrl = {
 
       await newprivacypolicySchema.save();
 
-      res.status(200).json({ success: 1, data: "Privacy Policy Created Successfully!" });
+      res
+        .status(200)
+        .json({ success: 1, data: "Privacy Policy Created Successfully!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
@@ -1499,7 +1613,8 @@ const userCtrl = {
       const { text } = req.body;
       const { id } = req.user;
 
-      if (!text || !id) return res.status(400).json({ error: "All fields are required" });
+      if (!text || !id)
+        return res.status(400).json({ error: "All fields are required" });
 
       // Delete all existing records
       await faqSchema.deleteMany({});
@@ -1521,7 +1636,8 @@ const userCtrl = {
       const { text } = req.body;
       const { id } = req.user;
 
-      if (!text || !id) return res.status(400).json({ error: "All fields are required" });
+      if (!text || !id)
+        return res.status(400).json({ error: "All fields are required" });
 
       // Delete all existing records
       await tutorialSchema.deleteMany({});
@@ -1533,7 +1649,9 @@ const userCtrl = {
 
       await newtutorialSchema.save();
 
-      res.status(200).json({ success: 1, data: "Tutorial Created Successfully!" });
+      res
+        .status(200)
+        .json({ success: 1, data: "Tutorial Created Successfully!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
@@ -1542,7 +1660,8 @@ const userCtrl = {
     try {
       const { id } = req.user;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       const query = { _id: id };
       const response_params = {
@@ -1695,7 +1814,8 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       let query = { _id: id };
       const dailytask = await DailyTasks.find(query);
@@ -1705,14 +1825,16 @@ const userCtrl = {
 
       // if (!dailytask[0].status) return res.status(400).json({ error: "Already Deactivated!" });
 
-      await DailyTasks.findOneAndUpdate(
-        { _id: id },
-        {
-          $set: { status: 0 },
-        }
+      await DailyTasks.findOneAndRemove(
+        { _id: id }
+        // {
+        //   $set: { status: 0 },
+        // }
       );
 
-      res.status(200).json({ success: 1, data: "DailyTask Successfully Deactivate!" });
+      res
+        .status(200)
+        .json({ success: 1, data: "DailyTask Successfully Deactivate!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
@@ -1721,7 +1843,8 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       let query = { _id: id };
       const article = await Articles.find(query);
@@ -1738,7 +1861,9 @@ const userCtrl = {
         // }
       );
 
-      res.status(200).json({ success: 1, data: "Article Successfully Deactivate!" });
+      res
+        .status(200)
+        .json({ success: 1, data: "Article Successfully Deactivate!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
@@ -1747,7 +1872,8 @@ const userCtrl = {
     try {
       const { id } = req.params;
 
-      if (!id) return res.status(400).json({ error: "All feilds are required" });
+      if (!id)
+        return res.status(400).json({ error: "All feilds are required" });
 
       let query = { _id: id };
       const questionare = await Questionares.find(query);
@@ -1766,7 +1892,9 @@ const userCtrl = {
         // }
       );
       // await FilledSurveys.findOneAndRemove({ questionare_id: id }),
-      res.status(200).json({ success: 1, data: "Questionares Successfully Deactivate!" });
+      res
+        .status(200)
+        .json({ success: 1, data: "Questionares Successfully Deactivate!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
